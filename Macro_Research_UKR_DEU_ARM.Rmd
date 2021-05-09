@@ -1,0 +1,491 @@
+---
+title: "Research Assignment"
+author: "Hayk Mkhitaryan"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+  word_document: default
+---
+
+
+
+```{r setup, include=FALSE}
+setwd("/Users/anushikqamalyan/Desktop/Research_Project")
+library(knitr)
+
+
+knitr::opts_chunk$set(echo = FALSE, warnings=FALSE, messages=FALSE)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+library(WDI);
+library(dplyr); 
+library(ggplot2)
+library(choroplethr)
+library(WDI) 
+library(knitr)
+
+```
+
+Time-series comparission between Ukraine, Germany and Armenia for the past 30 years. 
+
+## Overview
+
+Choice of indicators : 
+
+(i) GDP per capita(constant 2010 US$); GDP per capita,PPP(constant 2017 international $);
+(ii) GDP per capita (current US$); GDP per capita, PPP (current international $)
+(iii) GDP per capita growth (annual %) and GDP growth (annual %)
+
+
+  Indicators in "i" represent real GDP per capita, considering 2010 and 2017 as base years (respectively). Whereas GDP per capita US$ and GDP per capita, PPP international$ in "ii" show the GDP current prices, hence they represent nominal prices. 
+						
+  "The term nominal is the equivalent of current. Thus, (ii) GDP/capita in current US$, and PPP in current international $s corresponds to per capita nominal GDP.  Similarly, values that are calculated with constant terms correspond to ""the real."" Thus, the data in (i) correspond to real per capita GDP.
+
+
+  GDP per capita (constant 2010 US$) represents the absolute value of real GDP converted to common currency US dollars, which is easier for comparission, yet it fails to accurately depict Purchasing Power Parity of the country.  
+GDP per capita,PPP(constant 2017 international $), on the other hand, provides values for GDP, expressed in current international dollars, converted by PPP conversion factor. 
+
+
+  World bank calculates GDP per capita growth (annual %) on constant US dollars. Hence we can do the same, by picking per cent change of GDP per capita in constant 2010 US dollars.
+The difference between GDP growth (annual %) and GDP per capita growth (annual %) is patent. The later takes into account the changes in the number of population, whereas the first the other does not.In other words GDP growth is a measure of a nations economic growth (the change in total output) while GDP per capita also takes into account the reflection of changes from individuals perspective. 
+
+  If for example, the GDP and population grow at the same rate the GDP per capita measure will not reveal any changes in percentages. Given the difference between the two measures of growth, one can derive the population growth.
+						
+
+```{r, echo=FALSE, include=FALSE}
+# Download a series you like for the countries you like:
+dat<- WDI(indicator=c('NY.GDP.PCAP.PP.KD',  # GDP per capita
+                        "BN.CAB.XOKA.GD.ZS", # current account balance
+                        "IC.BUS.DFRN.XQ", # ease of doing business
+                        "FP.CPI.TOTL.ZG", # CPI
+                        "FR.INR.LNDP"), # interest rate spread
+          country=c('AM','DEU','UKR'), start=1994, end=2020)
+          
+```          
+   
+          
+Chart 1
+
+```{r echo=FALSE}
+
+#Plot the data:
+library(ggplot2)
+ggplot(dat, aes(year, NY.GDP.PCAP.PP.KD, color=country)) + geom_line() + 
+  xlab('Year') + ylab('GDP per capita, PPP (constant 2017 international $)')
+
+
+
+```
+
+The table above illustrates the real GDP per capita, PPP (Constant 2017 int $) from 1994 to 2018. As expected despite a significant progress made by the two post-soviet countries, they are still far behind Germany, where GDP per capita was nearly 5 times larger in 2018. All the 3 states roughly followed the same path of development (in dollar amount), yet given the low levels of GDP per capita in the initial period, the improvments in Ukraine and Armenia are far more sensible and bigger in terms of percentage change. 
+Armenia managed to outstip Ukraine during 2015-2016, most probably due to political crisis in Ukraine at same time.
+
+
+
+## Human Development Index
+
+The Human Development Index is a common measure for the level of development in a country. As opposed to GDP, the HDI gives values not only the economic aspect (GNI Index) but also education  healthy life (life expectancy index). The index is calculated based on the mean of these 3 attributes. 
+In the year of 2017 the HDI for Armenia, Ukraine and Germany were 0.755, 0.751, 0.936 respectively. 
+							
+							
+							
+
+
+```{r  echo=FALSE}
+#(note. The modified excel spreadsheet is attached to the file)
+## I use library readxl to import HDI dataset
+library(readxl)
+data2 <- read_excel("/Users/anushikqamalyan/Desktop/Research_Project/q2_data.xlsx")
+#View(data2)                                                                                                  
+```
+
+Chart 2. Human Development Index, 1994-2017
+
+```{r echo=FALSE}
+
+#Plot the data:
+library(ggplot2)
+ggplot(data2, aes(Year, HDI, color=Country)) + geom_line() + 
+  xlab('Year') + ylab('Human Development Index, (1994-2017)')
+
+
+
+```
+
+The trends observable in the second chart closely resemble that of the previous questions. Which might be an indicator that HDI, after all, is strongly linked to the GDP per capita.
+For example, we see the huge difference between Germany and two post-soviet states. Also the 2008 financial crisis is easily noticed in both illustrations.
+
+
+
+
+## GDP structure by sectors 
+
+
+
+```{r  echo=FALSE, results='asis'}
+
+data3<- WDI(indicator=c('NV.AGR.TOTL.ZS', 
+                       "NV.IND.TOTL.ZS",
+                       "NV.SRV.TOTL.ZS"), 
+           country=c('AM','UKR','DEU'), start=2019, end=2019)
+```
+
+Table 1. 
+
+```{r  echo=FALSE, results='asis'}
+
+kable(data3[1:3,], col.names = c('Code', 'Country', 'Year', 'Agricultre (% of GDP)', 'Industry (% of GDP)', 'Services (% of GDP)' ), caption="Sectors as % of GDP in 2019")
+
+```
+
+As was expected in all three countries services sector contributes to the highest proportion of GDP. This resembles the post-industrial state of the economy where importance of manufacturing declines as opposed to information, technology and services. Yet the difference between development levels of the 3 states are visible, when one looks at percentage of agriculture in GDP. For Armenia and Ukraine it is nearly 10% while for Germany it is less than 1%. This share is supposedly substituted by services and manufacturing, which are occupy higher proportion than that in Armenia and Ukraine.
+
+
+``````{r  echo=FALSE, results='asis'}
+data3_2<- WDI(indicator=c('NV.AGR.TOTL.ZS', 
+                       "NV.IND.TOTL.ZS",
+                       "NV.SRV.TOTL.ZS"), 
+           country=c('AM','UKR','DEU'), start=2010, end=2019)
+```
+
+Chart 3.
+
+```{r  echo=FALSE, results='asis'}
+
+ggplot(data3_2, aes(year, NV.AGR.TOTL.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('AGR (% of GDP) $)') 
+
+```
+
+At the same time we can see a steady decrease in Agr. Sector (% of GDP) for Armenia (Chart 4), indicating that the country is on a path of development and modernization. 
+
+
+## FDI
+
+Chart 4
+
+```{r  echo=FALSE, results='asis'}
+data4<- WDI(indicator=c("BX.KLT.DINV.WD.GD.ZS"), 
+           country=c('AM','UKR','DEU'), start=1994, end=2019)
+
+ggplot(data4, aes(year,  BX.KLT.DINV.WD.GD.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('FDI inflows (% of GDP)') 
+
+#image: ![](path/to/smallorb.png)
+```
+
+As seen in chart 5, the Foreign Direct investment inflows (% of GDP) is a very volatile measure especially in developing countries. It is rather difficult to see patterns for any of the countries, rather it is more reasonable to attribute the huge atypical increases or downfalls to socia-political phenomenons, as FDI largely depends on the stability and safety of country.
+
+## Personal Remittances comparisson
+
+Chart 5. Personal remittances, received (% of GDP)
+
+```{r echo=FALSE, warning=FALSE, results='asis'}
+data5<- WDI(indicator=c("BX.TRF.PWKR.DT.GD.ZS"), 
+           country=c('AM','UKR','DEU'), start=1994, end=2019)
+
+ggplot(data5, aes(year, BX.TRF.PWKR.DT.GD.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Personal remittances, (% of GDP)') 
+```
+WB Definition of index. Personal remittances comprise personal transfers and compensation of employees. Personal transfers consist of all current transfers in cash or in kind made or received by resident households to or from nonresident households. Personal transfers thus include all current transfers between resident and nonresident individuals. 
+
+Given that both Armenia and Ukraine both have majority of its adult population making their earnings abroad (Moreover Armenian institutions and firms also receive aid from Armenian expatriates mainly in US, Russia, EU), hence the higher proportion of personal remittances received in GDP. Whereas, such tendency of employment migration is less likely in a developed country like Germany. 
+
+## External Debt Stocs
+ 
+
+```{r echo=FALSE, ,echo=FALSE}
+library(png)
+library(grid)
+img1 <- readPNG("/Users/anushikqamalyan/Desktop/Research_Project/Screenshot/Armenia.png")
+
+
+
+img2 <- readPNG("/Users/anushikqamalyan/Desktop/Research_Project/Screenshot/Ukraine.png")
+
+img3 <- readPNG("/Users/anushikqamalyan/Desktop/Research_Project/Screenshot/Germany.png")
+ grid.raster(img1)
+ 
+```
+
+Chart 6
+
+Ignoring the more or less economically volatile period before 2000, it is seen in Chart 7 that Armenian economy was growing from 2000 until the global financial crisis with being able to increase the debt relatively smaller, (or even decrease at some periods). However, since the crisis the debt/gdp ration plummeted reaching almost 54% in the 2015
+
+
+```{r echo=FALSE, ,echo=FALSE}
+
+grid.raster(img2)
+ 
+```
+
+Chart 7
+
+The pattern of Debt to GDP ratio in Ukraine is similar to that of Armenia, as both share more or less similar history in the last 30 years. Newly forming economy in 90s (hence volatility) after the collapse of USSR from, then stage of recupertion, then post-financial crisis era. 
+
+
+```{r echo=FALSE, ,echo=FALSE}
+
+grid.raster(img3)
+
+```
+
+Chart 8.
+
+Germany had steadily growing debt relative to GDP for the whole period. As seen in the chart 9, the country did not suffer as much after the crisis, and even managed to stabilize the ratio in the later period.
+
+
+## Characteristics for starting a business
+
+```{r, echo=FALSE, include=FALSE}
+# Download a series you like for the countries you like:
+dat<- WDI(indicator=c('NY.GDP.PCAP.PP.KD',  # GDP per capita
+                        "BN.CAB.XOKA.GD.ZS", # current account balance
+                        "IC.BUS.DFRN.XQ", # ease of doing business
+                        "FP.CPI.TOTL.ZG", # CPI
+                        "FR.INR.LNDP"), # interest rate spread
+          country=c('AM','DEU','UKR'), start=1994, end=2020)
+          
+```          
+
+```{r  echo=FALSE, results='asis'}
+
+data8<- WDI(indicator=c("IC.BUS.NREG", #New businesses registered (number)
+                        "IC.REG.COST.PC.ZS", #Cost of business start-up procedures (% of GNI per capita)
+                        "IC.REG.DURS"), #Time required to start a business (days)
+           country=c('AM','UKR','DEU'), start=2014, end=2014)
+```
+
+Table 2. 
+
+```{r  echo=FALSE, results='asis'}
+
+kable(data8[1:3,], col.names = c('Code', 'Country', 'Year', '#New businesses registered (number)', '#Cost of business start-up procedures (% of GNI per capita)', 'Time required to start a business (days)' ), caption="New businesses stastistics 2014")
+
+```
+
+While comparing the number of newly registered business from different countries, as one needs to realize the scope of economies and population differences in those countries. Dividing the number by adult population of respective state could be helpful.
+The cost of starting a business as percentage of GNI is significantly high in Germany, than in Armenia or Ukraine.This is a useful measure as is calculated based on average cost of starting the business divided by GNI per capita, thus controlling for differences in population and propensity to engage in enterpreneurship.
+
+Time required to start a business is the lowest in Armenia and the highest in Ukraine. This measure largely linked to level of bureaucracy in the country, and too long requirements may frighten potential investors to start a business.
+
+## Income distribution
+
+9. (1.1 points) For 2000-2019 report Income share held by lowest 10% and Income share held by highest 10% and comment.
+
+Chart 9.
+Last 3 years for Germany missing
+
+```{r echo=FALSE, warning=FALSE, results='asis'}
+#Period chosen 2003-2019 (based on availability)
+
+data9<- WDI(indicator=c("SI.DST.10TH.10", #Income share held by highest 10%
+                        "SI.DST.FRST.10"), #Income share held by lowest 10% 
+           country=c('AM','UKR','DEU'), start=2003, end=2019)
+ggplot(data9, aes(year, SI.DST.FRST.10, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Income Share held by Lowest 10') 
+```
+
+
+Chart 10.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+ggplot(data9, aes(year, SI.DST.10TH.10, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Income Share held by highest 10, (% of GDP)') 
+```
+
+Income distribution is the most evenly shared in Ukraine, however the shares for highest and lowest 10% are most stable in Germany.
+
+Period chosen 2003-2019 (based on availability) ,
+Note. 2016-2019 missing for Germany.
+
+
+
+```{r  echo=FALSE, results='asis'}
+#Period chosen 2003-2019 (based on availability)
+
+data10<- WDI(indicator=c("SI.POV.GINI", #Gini Index
+                        "SI.POV.DDAY"), #Poverty headcount ratio at $1.90 a day (2011 PPP) 
+           country=c('AM','UKR','DEU'), start=2000, end=2019)
+```
+
+Chart 11. Gini Index
+
+```{r echo=FALSE, warning=FALSE, results='asis'}
+
+#Gini index
+
+ggplot(data10, aes(year, SI.POV.GINI, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Gini index') 
+```
+
+Income inequality based on GINI index WB estimate, is illustrated for Armenia Germany and Ukraine in the Chart 11. The distribution of wealth remained roughly the same for the developed country,  but is highly volatile, especially for Armenia. The chart represents a sharp decline in Gini index in the year 2019, despite a steady increase in Gini index for Armenia in the since 2010 yet. This might be correlated with the 2018 revolution. It is interesting to compare the tendency with the case of Ukraine, where despite the minor decrease in GINI ind. after 2015-2016 events, the index kept rising again eventually.
+
+Chart 12. Poverty headcount ratio at $1.90 a day (2011 PPP) (% of population)
+
+
+```{r echo=FALSE, warning=FALSE, results='asis'}
+#Gini index
+
+ggplot(data10, aes(year, SI.POV.DDAY, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Poverty headcount rati') 
+```
+For the given cut-off 1.9$ a day, in Germany and Ukraine the poverty level was less than 1% for the past 15 years. In Armenia, however the ratio is comparable higher for the same period. At the same time Armenia managed to lower the ratio by more than 10% since the year 2002
+Year 2000 is missing for Armenia. Years 2000 and 2001 is missing for Ukraine. Years 2016-2019 missing for Germany
+
+##  Gross savings (% of GNI) and Gross capital formation (% of GDP)
+
+```{r  echo=FALSE, results='asis'}
+#Period chosen 2003-2019 (based on availability)
+
+data11<- WDI(indicator=c("NY.GNS.ICTR.GN.ZS", #Gross savings (% of GNI)
+                        "NE.GDI.TOTL.ZS"), #Gross capital formation (% of GDP) 
+           country=c('AM','UKR','DEU'), start=2000, end=2019)
+```
+
+Chart 13. Gross savings (% of GNI)
+
+
+```{r  echo=FALSE, results='asis'}
+
+ #Gross savings (% of GNI)
+
+ggplot(data11, aes(year, NY.GNS.ICTR.GN.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Gross Savings (%)') 
+```
+Gross savings rate is stable for Germany between 25-30% for the whole period (Chart 13). While Armenia reached this level only for a short period before 2008 crisis. The latter can be linked to a the decrease in propensity to save both in Ukraine and Armenia as people might have started to trust the banks less. Yet, such behaviour is absence in case of Germany
+
+Chart 14. Gross capital formation (% of GDP)
+
+
+```{r  echo=FALSE, results='asis'}
+
+#Gross capital formation (% of GDP)
+
+ggplot(data11, aes(year, NE.GDI.TOTL.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Gross capital formation (%)') 
+```
+Although all 3 states have approximately the same rate of captial formation both in the beginning and ending of the given timeframe, both Ukraine and Armenia undergone substantiate increase in the rate of captial formation reaching peak in 2008 and declining since, then. The measure of Gross Capital formation as % of GDP again indicates the stability of German economy. 
+
+## Tax Revenues, composition
+
+
+```{r  echo=FALSE, results='asis'}
+
+data12<- WDI(indicator=c("GC.TAX.TOTL.GD.ZS", #Tax revenue (% of GDP))
+                        "GC.TAX.YPKG.ZS"), #Taxes on income, profits and capital gains (% of total taxes)
+           country=c('AM','UKR','DEU'), start=2000, end=2019)
+```
+
+Chart 15. Tax revenue (% of GDP)
+Years 2000-2003 missing for Armenia
+
+```{r echo=FALSE, warning=FALSE, results='asis'}
+ggplot(data12, aes(year, GC.TAX.TOTL.GD.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Tax revenue (% of GDP))') 
+```
+Based on Chart 15, tax revenues has been higher as percentage of GDP during the whole observed period in developing. Additionally they kept increasing at roughly same rates for both Armenia and Ukraine, while that of Germany remained constant.
+
+Chart 16. Taxes on income, profits and capital gains (% of total taxes)
+
+```{r echo=FALSE, warning=FALSE, results='asis'}
+
+#Taxes on income, profits and capital gains (% of total taxes)
+
+ggplot(data12, aes(year, GC.TAX.YPKG.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Taxes on income... (% of total taxes)') 
+```
+Tax income on profits, and capital gains account for nearly 40% of total tax revenues in Armenia and Germany, while the Ukraine is less dependent of this particular source of tax revenue. This is the first case among all the mentioned measures, where a developing country is much closer to the developed country than to another developing country.
+Year 2019 missing for all 3 countries
+
+ 
+## Labor force participation
+
+```{r  echo=FALSE, results='asis'}
+
+data13<- WDI(indicator=c("SL.TLF.ACTI.ZS", #Labor force participation rate
+                        "SL.UEM.TOTL.ZS"), #Unemployment, total (% of total labor force)
+           country=c('AM','UKR','DEU'), start=2000, end=2019)
+```
+
+Chart 17. Labor force participation rate, total (% of total population ages 15-64)
+
+```{r  echo=FALSE, results='asis'}
+
+
+ggplot(data13, aes(year, SL.TLF.ACTI.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Labor force participation rate') 
+```
+
+Labor force participation rate gradually increased in Germany reaching almost 80& in the final year, while it remained constant for the other 2 states, with exception the period between 2008-2017 when Armenians experienced a short term increase reaching peak in 2012-2013. 
+
+Chart 18. Unemployment, total (% of total labor force)
+
+```{r  echo=FALSE, results='asis'}
+
+ggplot(data13, aes(year, SL.UEM.TOTL.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Unemployment (% of labor force))')
+
+```
+
+Since 2009 the Unemployment rate was highest in Armenia , (18% at peak), then in Ukraine, (9%). While all 3 states had roughly similar unemp. rates in the earlier stage (2000-2008)
+SL.TLF.ACTI.ZS Labor force participation rate, total (% of total population ages 15-64)
+SL.UEM.TOTL.ZS Unemployment, total (% of total labor force)
+
+
+## Trade Openness
+
+```{r  echo=FALSE, results='asis'}
+
+data14<- WDI(indicator=c("NE.TRD.GNFS.ZS"), #Trade (% of GDP)
+           country=c('AM','UKR','DEU'), start=2000, end=2019)
+```
+
+####Chart 19.
+
+```{r  echo=FALSE, results='asis'}
+
+ggplot(data14, aes(year, NE.TRD.GNFS.ZS, color=country)) + geom_line() + 
+  xlab('Year') + ylab('Trade (% of GDP') 
+```
+
+Up until 2008 Both Ukraine and Armenia experienced a decline in trade as % of GDP. While Germany increased its trade openness almost during the whole period. Ukraine had the highest trade/GDP ration with the exception of the final year, but Armenia experienced the highest percentage growth.
+
+## esearch and development expenditure (% of GDP)
+
+Chart 20.
+
+```{r echo=FALSE, warning=FALSE}
+
+choroplethr_wdi(code = "GB.XPD.RSDV.GD.ZS", year = 2014, title = "Research and development expenditure (% of GDP) 2014",num_colors = 5, zoom = NULL)
+
+```
+
+Based on the map we can assume that developed countries on average spend more on research & development as percentage of their GDP. An interesting exception is China, despite being considered (fairly) a developing country they are in the top list by R&D. As for the states of our primary interest, Germany is in the highest tier (as expected), then Ukraine and then Armenia (spending less then 21.3% on R&D).
+
+ 
+## World map by real GDP per capita (PPP)
+
+
+Chart 21.
+
+```{r echo=FALSE, warning=FALSE}
+
+choroplethr_wdi(code = "NY.GDP.PCAP.PP.KD", year = 2019, title = "Countries by GDP per capita, PPP", num_colors = 5, zoom = NULL)
+
+```
+
+West European (including Germany) and North-American countries have the highest levels of GDP per capita (more than 40k$).Australia and Eastern-most regions of the world (Japan, South Korea) also fall under the same category. While many central Africans countries have lower then 3600. Armenia and Ukraine are at roughly the same level, as seen previosuly in Chart 1.
+
+
+
+
+### THE END
+
+
+
+
+
